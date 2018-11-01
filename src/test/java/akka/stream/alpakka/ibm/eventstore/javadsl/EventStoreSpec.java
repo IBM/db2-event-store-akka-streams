@@ -1,6 +1,28 @@
 /*
  * Copyright (C) 2016-2017 Lightbend Inc. <http://www.lightbend.com>
  */
+/* Original work from Lightbend has been modified, as needed, and
+ * continues to be Apache v2 licensed. Modifications include:
+ * - licensing/copyright for derived work modifications below
+ * - only ignore the negative tests (they cause conflicts)
+ * - updated endpoints
+ * - fixes to allow tests to run w/ existing databases/tables
+ */
+/*
+ * Copyright 2018 IBM Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package akka.stream.alpakka.ibm.eventstore.javadsl;
 
@@ -49,21 +71,22 @@ import static org.junit.Assert.assertEquals;
  * Change the host and port below in the function 'failureEndpoint' to a unresponsive host/port.
  *
  */
-@Ignore
 public class EventStoreSpec {
     private static ActorSystem system;
     private static Materializer materializer;
     private static EventContext eventContext;
     private static String databaseName = "TESTDB";
-    private static String tableName = "TESTTABLE";
+    private static String tableName = "TESTTABLE_JAVA";
     private static void setEndpoint() {
         // #configure-endpoint
-        ConfigurationReader.setConnectionEndpoints("127.0.0.1:5555");
+        ConfigurationReader.setConnectionEndpoints("127.0.0.1:1100");
+        ConfigurationReader.setConnectionTimeout(1);
         // #configure-endpoint
 
     }
     private static void setFailureEndpoint() {
-        ConfigurationReader.setConnectionEndpoints("192.168.1.1:5555");
+        ConfigurationReader.setConnectionEndpoints("bogus:1100");
+        ConfigurationReader.setConnectionTimeout(1);
     }
 
     private static Pair<ActorSystem, Materializer> setupMaterializer() {
@@ -89,14 +112,18 @@ public class EventStoreSpec {
         materializer = ActorMaterializer.create(system);
         setEndpoint();
 
-        EventContext.dropDatabase(databaseName);
-        eventContext = EventContext.createDatabase(databaseName);
+        try {
+            // Create new if no databases
+            eventContext = EventContext.createDatabase(databaseName);
+        } catch (Exception e) {
+            // Use existing
+            eventContext = EventContext.getEventContext(databaseName);
+        }
     }
 
     @AfterClass
     public static void teardown() {
         setEndpoint();
-        EventContext.dropDatabase(databaseName);
         // #cleanup
         EventContext.cleanUp();
         // #cleanup
@@ -129,7 +156,8 @@ public class EventStoreSpec {
         insertionResultFuture.toCompletableFuture().get(5, TimeUnit.SECONDS);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = Exception.class)
+    @Ignore
     public void testFailingtoInsertRecords() throws Exception {
 
         setFailureEndpoint();
@@ -167,7 +195,8 @@ public class EventStoreSpec {
         assertEquals(result.size(), 3);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = Exception.class)
+    @Ignore
     public void testFailingtoInsertRecordsUsingFlow() throws Exception {
 
         setFailureEndpoint();
