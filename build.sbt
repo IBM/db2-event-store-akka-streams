@@ -22,8 +22,15 @@ lazy val root = (project in file(".")).
       "org.scalatest"     %% "scalatest"            % "3.0.1"         % Test
     ),
     libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-slf4j" % "2.5.17",
+      "ch.qos.logback" % "logback-classic" % "1.2.3"
+    ),
+    libraryDependencies ++= Seq(
+      "com.lightbend.akka" %% "akka-stream-alpakka-csv" % "0.18",
+
       "org.apache.spark"    % "spark-core_2.11"   % sparkVersion,
       "org.apache.spark"    % "spark-sql_2.11"    % sparkVersion,
+
       "com.ibm.event" % "ibm-db2-eventstore-desktop-client" % "1.1.4" // For IBM Db2 Event Store Developer edition v1.1.4
     )
   )
