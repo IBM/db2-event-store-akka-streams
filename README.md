@@ -34,7 +34,7 @@ When the reader has completed this Code Pattern, they will understand how to:
 1. [Run the database setup notebook](#3-run-the-database-setup-notebook)
 1. [Run the Scala app](#4-run-the-scala-app)
 1. [Feed in data](#5-feed-in-data)
-1. [See the results](#6-see-the-results)
+1. [Visualize the data](#6-visualize-the-data)
 
 ### 1. Clone the repo
 
@@ -117,7 +117,7 @@ text or file input.
   * Press `SEND`.
 * Direction **out** will show when/what you sent, and direction **in** will show the response from your server.
 
-### 6. See the results
+### 6. Visualize the data
 
 The git repo includes a Jupyter notebook which is uses Spark SQL and
 Brunel visualizations to manipulate and present the data.

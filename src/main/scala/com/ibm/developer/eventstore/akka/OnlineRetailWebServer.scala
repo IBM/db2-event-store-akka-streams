@@ -28,7 +28,7 @@ import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.http.scaladsl.settings.ServerSettings
 import akka.stream.ActorMaterializer
 import akka.stream.alpakka.csv.scaladsl.{ CsvParsing, CsvToMap }
-import akka.stream.alpakka.ibm.eventstore.scaladsl.EventStoreFlow
+import akka.stream.alpakka.ibm.eventstore.scaladsl.{ EventStoreFlow, EventStoreSink }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import com.ibm.event.common.ConfigurationReader
 import org.apache.spark.sql.Row
@@ -47,6 +47,16 @@ class OnlineRetailWebServer extends HttpApp {
   private val shutdownPromise = Promise[Done]
   private val db = "TESTDB"
   private val tableName = "OnlineRetailOrderDetail"
+  private val cancelTableName = "OnlineRetailCancelDetail"
+
+  /** Remove non-numerics from invoice numbers (C prefix used in cancellations) */
+  def invoiceToLong(invoice: String): Long = invoice.replaceAll("[^\\d.]", "").toLong
+
+  /** Convert mapped order details into a Row */
+  def toRow(m: Map[String, String]): Row = Row(
+    System.currentTimeMillis(), invoiceToLong(m("InvoiceNo")), m("StockCode"), m("Description"), m("Quantity").toInt,
+    Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country")
+  )
 
   def websocket: Flow[Message, Message, Any] =
     Flow[Message].mapConcat {
@@ -57,21 +67,25 @@ class OnlineRetailWebServer extends HttpApp {
           .single(ByteString(textMessage.getStrictText))
           .via(CsvParsing.lineScanner())
           .via(CsvToMap.withHeadersAsStrings(StandardCharsets.UTF_8, "InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country"))
-          .map(x => Row(System.currentTimeMillis(), x("InvoiceNo").toLong, x("StockCode"), x("Description"), x("Quantity").toInt, Timestamp.valueOf(x("InvoiceDate")), java.lang.Double.valueOf(x("UnitPrice")), x("CustomerID"), x("Country")))
-          .via(EventStoreFlow(db, tableName)).runWith(Sink.seq)
+          .map(x => toRow(x))
+          .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
+          .via(EventStoreFlow(db, tableName))
+          .runWith(Sink.seq)
         TextMessage(
           Source
             .single("Sent text message data to Db2 Event Store")
         ) :: Nil
 
       case binaryMessage: BinaryMessage =>
-        println(s"bm: BinaryMessage received")
+        println("BinaryMessage received")
+
         binaryMessage.dataStream
           .via(CsvParsing.lineScanner())
-          .via(CsvToMap.toMapAsStrings())
-          .divertTo(Sink.ignore, _("InvoiceNo").contains('C')) // TODO: capture cancellations
-          .map(x => Row(System.currentTimeMillis(), x("InvoiceNo").toLong, x("StockCode"), x("Description"), x("Quantity").toInt, Timestamp.valueOf(x("InvoiceDate")), java.lang.Double.valueOf(x("UnitPrice")), x("CustomerID"), x("Country")))
-          .via(EventStoreFlow(db, tableName)).runWith(Sink.seq)
+          .via(CsvToMap.toMapAsStrings()) // First line is headers
+          .map(x => toRow(x))
+          .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
+          .via(EventStoreFlow(db, tableName))
+          .runWith(Sink.ignore)
         TextMessage(
           Source
             .single("Sent binary message data to Db2 Event Store")
