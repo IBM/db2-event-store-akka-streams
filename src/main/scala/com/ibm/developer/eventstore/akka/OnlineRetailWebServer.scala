@@ -26,10 +26,10 @@ import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
 import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
 import akka.http.scaladsl.server.{ HttpApp, Route }
 import akka.http.scaladsl.settings.ServerSettings
-import akka.stream.ActorMaterializer
+import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, Supervision }
 import akka.stream.alpakka.csv.scaladsl.{ CsvParsing, CsvToMap }
-import akka.stream.alpakka.ibm.eventstore.scaladsl.{ EventStoreFlow, EventStoreSink }
-import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.stream.alpakka.ibm.eventstore.scaladsl.EventStoreSink
+import akka.stream.scaladsl.{ Flow, Source }
 import com.ibm.event.common.ConfigurationReader
 import org.apache.spark.sql.Row
 
@@ -38,8 +38,14 @@ import scala.util.Success
 
 class OnlineRetailWebServer extends HttpApp {
 
+  val decider: Supervision.Decider = { e =>
+    println("Unhandled exception in stream", e)
+    Supervision.Resume
+  }
+
   implicit val system: ActorSystem = ActorSystem(Logging.simpleName(this).replaceAll("\\$", ""))
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  val materializerSettings: ActorMaterializerSettings = ActorMaterializerSettings(system).withSupervisionStrategy(decider)
+  implicit val materializer: ActorMaterializer = ActorMaterializer(materializerSettings)
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   ConfigurationReader.setConnectionEndpoints("0.0.0.0:1100")
@@ -69,8 +75,7 @@ class OnlineRetailWebServer extends HttpApp {
           .via(CsvToMap.withHeadersAsStrings(StandardCharsets.UTF_8, "InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country"))
           .map(x => toRow(x))
           .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
-          .via(EventStoreFlow(db, tableName))
-          .runWith(Sink.seq)
+          .runWith(EventStoreSink(db, tableName))
         TextMessage(
           Source
             .single("Sent text message data to Db2 Event Store")
@@ -84,8 +89,7 @@ class OnlineRetailWebServer extends HttpApp {
           .via(CsvToMap.toMapAsStrings()) // First line is headers
           .map(x => toRow(x))
           .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
-          .via(EventStoreFlow(db, tableName))
-          .runWith(Sink.ignore)
+          .runWith(EventStoreSink(db, tableName))
         TextMessage(
           Source
             .single("Sent binary message data to Db2 Event Store")
