@@ -131,13 +131,46 @@ Use the Db2 Event Store UI to create and run the notebook.
 1. Select the `From File` tab.
 1. Provide a name.
 1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Select the file `online_retail_orders.ipynb`.
-1. Scroll down and click on `Create Notebook`.
-The new notebook is now open and ready for execution.
+1. Scroll down and click on `Create Notebook`. The new notebook is now open and ready for execution.
 
 #### Run the notebook
 
 1. Edit the `host` constant in the first code cell. You will need to enter your host's IP address here.
 2. Run the notebook using the menu `Cell  ▷ Run all` or run the cells individually with the play button.
+
+#### Review the output
+
+##### Counts and most recent events
+
+Near the top of the notebook we use simple Spark SQL output to
+help you verify that your data got into Event Store. As you feed
+in data you can run these cells over and over if you'd like to
+see the current count or your most recent events.
+
+![counts](doc/source/images/counts.png)
+![most_recent_events](doc/source/images/most_recent_events.png)
+
+##### Aggregation and manipulation
+
+Next we do some aggregation and manipulation.
+For example, the notebook:
+
+* Calculates gross sales (UnitPrice * Quantity)
+* Uses number and date formatting
+* Extracts hour-of-the-day from timestamps
+* Aggregates the data using these calculated attributes
+* Aggregates to get Invoice counts (multiple events per invoice)
+* Uses various group-by summaries
+
+##### Display the aggregated information
+
+Spark SQL and %%dataframe cell magic makes it easy to show a nice table for Top-10 (by units or gross sales). Brunel makes it easy to show graphically with interactive charts and maps. Here are some examples:
+
+![invoices_by_country](doc/source/images/invoices_by_country.png)
+![top_gross_charts](doc/source/images/top_gross_charts.png)
+
+Run the code pattern (or cheat and look at the sample output notebook)
+to see these examples live -- and more.
 
 # Sample output
 
