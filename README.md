@@ -139,13 +139,9 @@ The new notebook is now open and ready for execution.
 1. Edit the `host` constant in the first code cell. You will need to enter your host's IP address here.
 2. Run the notebook using the menu `Cell  ▷ Run all` or run the cells individually with the play button.
 
-
-<!--
 # Sample output
 
-![](doc/source/images/sample_output.png)
--->
+See the notebook with example output and **interactive charts** [here](http://nbviewer.jupyter.org/github/IBM/db2-event-store-akka-streams/blob/master/data/examples/online_retail_orders.ipynb).
 
 # License
 [Apache 2.0](LICENSE)
-
