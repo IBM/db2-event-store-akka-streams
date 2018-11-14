@@ -15,6 +15,7 @@ When the reader has completed this Code Pattern, they will understand how to:
 ![architecture](doc/source/images/architecture.png)
 
 ## Flow
+
 1. Setup the database with a Jupyter notebook.
 2. Submit CSV data via WebSockets.
 3. Use Akka and Alpakka to transform the data and feed it into Event Store.
@@ -25,9 +26,7 @@ When the reader has completed this Code Pattern, they will understand how to:
 [![](http://img.youtube.com/vi/Jxi7U7VOMYg/0.jpg)](https://www.youtube.com/watch?v=Jxi7U7VOMYg)
 -->
 
-# Steps
-
-## Run locally
+## Steps
 
 1. [Clone the repo](#1-clone-the-repo)
 1. [Install IBM Db2 Event Store Developer Edition](#2-install-ibm-db2-event-store-developer-edition)
@@ -40,7 +39,7 @@ When the reader has completed this Code Pattern, they will understand how to:
 
 Clone the `db2-event-store-akka-streams` repo locally. In a terminal, run:
 
-```
+```bash
 git clone https://github.com/IBM/db2-event-store-akka-streams
 ```
 
@@ -60,7 +59,7 @@ Scala with Event Store, such as:
 * Create a table
 * Query a table
 
-#### Import the notebook
+#### Import the setup notebook
 
 Use the Db2 Event Store UI to create and run the notebook.
 
@@ -70,9 +69,10 @@ Use the Db2 Event Store UI to create and run the notebook.
 1. Provide a name.
 1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Select the file `online_retail_database_setup.ipynb`.
 1. Scroll down and click on `Create Notebook`.
+
 The new notebook is now open and ready for execution.
 
-#### Run the notebook
+#### Run the setup notebook
 
 1. Edit the `host` constant in the first code cell. You will need to enter your host's IP address here.
 2. Run the notebook using the menu `Cell  ▷ Run all` or run the cells individually with the play button.
@@ -81,13 +81,31 @@ The new notebook is now open and ready for execution.
 
 The repo contains an sbt project to run the Scala/Akka app.
 
-
 * Install sbt from [here](https://www.scala-sbt.org/1.0/docs/Setup.html).
 * Run the app:
-  ```
+
+  ```bash
   cd db2-event-store-akka-streams
   sbt run
   ```
+
+The app creates a WebSockets endpoint at `ws://localhost:8080/websocket/orderitem`.
+
+Using Akka HTTP, very little code is needed to set up WebSockets. We also put a simple message at `/` for folks that hit server URL.
+
+![websockets_code](doc/source/images/websockets_code.png)
+
+With Akka Streams and Alpakka, we have an elegant way to:
+
+* Parse the CSV data
+* Map the CSV data using headers
+* Transform the data into Spark SQL Rows
+* Divert negative quantity order items into our cancellations EventStoreSink
+* Feed remaining orders into our EventStoreSink table `OnlineRetailOrderDetails`
+
+![streaming_code](doc/source/images/streaming_code.png)
+
+> Note: EventStoreSink and EventStoreFlow are not currently part of the Alpakka distribution. They are provided in this code pattern's github repo.
 
 ### 5. Feed in data
 
@@ -100,7 +118,7 @@ text or file input.
 
 ![arc_testing](doc/source/images/arc_testing.png)
 
-#### To test with ARC:
+#### To test with ARC
 
 * Install ARC from [here](https://install.advancedrestclient.com/#/install).
 * Run the ARC app.
@@ -122,7 +140,7 @@ text or file input.
 The git repo includes a Jupyter notebook which is uses Spark SQL and
 Brunel visualizations to manipulate and present the data.
 
-#### Import the notebook
+#### Import the orders notebook
 
 Use the Db2 Event Store UI to create and run the notebook.
 
@@ -133,7 +151,7 @@ Use the Db2 Event Store UI to create and run the notebook.
 1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Select the file `online_retail_orders.ipynb`.
 1. Scroll down and click on `Create Notebook`. The new notebook is now open and ready for execution.
 
-#### Run the notebook
+#### Run the orders notebook
 
 1. Edit the `host` constant in the first code cell. You will need to enter your host's IP address here.
 2. Run the notebook using the menu `Cell  ▷ Run all` or run the cells individually with the play button.
@@ -172,9 +190,11 @@ Spark SQL and %%dataframe cell magic makes it easy to show a nice table for Top-
 Run the code pattern (or cheat and look at the sample output notebook)
 to see these examples live -- and more.
 
-# Sample output
+
+## Sample output
 
 See the notebook with example output and **interactive charts** [here](http://nbviewer.jupyter.org/github/IBM/db2-event-store-akka-streams/blob/master/data/examples/online_retail_orders.ipynb).
 
-# License
+## License
+
 [Apache 2.0](LICENSE)
