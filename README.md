@@ -149,8 +149,7 @@ Use the Db2 Event Store UI to create and run the notebook.
 1. Select the `From File` tab.
 1. Provide a name.
 1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Select the file `online_retail_orders.ipynb`.
-1. Scroll down and click on `Create Notebook`.
-The new notebook is now open and ready for execution.
+1. Scroll down and click on `Create Notebook`. The new notebook is now open and ready for execution.
 
 #### Run the orders notebook
 
@@ -190,6 +189,7 @@ Spark SQL and %%dataframe cell magic makes it easy to show a nice table for Top-
 
 Run the code pattern (or cheat and look at the sample output notebook)
 to see these examples live -- and more.
+
 
 ## Sample output
 
