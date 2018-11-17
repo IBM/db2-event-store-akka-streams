@@ -109,9 +109,20 @@ With Akka Streams and Alpakka, we have an elegant way to:
 
 ### 5. Feed in data
 
-<!-- TODO: provide and describe the example data files -->
-
 Now that the app is running, data can be fed in with WebSockets.
+
+For example data, use the file
+[data/online_retail_2010_12.csv](data/online_retail_2010_12.csv)
+from your cloned repo. This CSV file contains a header that is used for mapping the columns.
+You can feed in one or more rows as CSV text (no header) or feed in an entire CSV file (with header).
+Example header and order details:
+```csv
+InvoiceNo,StockCode,Description,Quantity,InvoiceDate,UnitPrice,CustomerID,Country
+536365,85123A,WHITE HANGING HEART T-LIGHT HOLDER,6,2010-12-01 08:26:00,2.55,17850,United Kingdom
+536365,71053,WHITE METAL LANTERN,6,2010-12-01 08:26:00,3.39,17850,United Kingdom
+536365,84406B,CREAM CUPID HEARTS COAT HANGER,8,2010-12-01 08:26:00,2.75,17850,United Kingdom
+```
+
 You should be able to use your favorite WebSockets test client (or write one).
 For example, **Advanced REST Client (ARC)** supports testing WebSockets with
 text or file input.
