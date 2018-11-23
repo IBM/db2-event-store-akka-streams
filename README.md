@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/IBM/db2-event-store-akka-streams.svg?branch=master)](https://travis-ci.org/IBM/db2-event-store-akka-streams)
+
 # Online retail data streaming with Akka and Db2 Event Store
 
 In this code pattern, we will build a Scala app that uses Akka to
