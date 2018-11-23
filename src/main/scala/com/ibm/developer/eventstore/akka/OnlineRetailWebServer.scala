@@ -61,8 +61,7 @@ class OnlineRetailWebServer extends HttpApp {
   /** Convert mapped order details into a Row */
   def toRow(m: Map[String, String]): Row = Row(
     System.currentTimeMillis(), invoiceToLong(m("InvoiceNo")), m("StockCode"), m("Description"), m("Quantity").toInt,
-    Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country")
-  )
+    Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country"))
 
   def websocket: Flow[Message, Message, Any] = {
     val writerSink = Flow[Map[String, String]]
@@ -94,8 +93,7 @@ class OnlineRetailWebServer extends HttpApp {
         println("GET /")
         HttpEntity(
           ContentTypes.`text/html(UTF-8)`,
-          "<html><body>OnlineRetailWebServer is running!</body></html>"
-        )
+          "<html><body>OnlineRetailWebServer is running!</body></html>")
       }
     } ~
       pathPrefix("websocket") {
