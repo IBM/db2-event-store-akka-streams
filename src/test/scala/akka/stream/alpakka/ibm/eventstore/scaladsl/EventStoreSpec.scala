@@ -58,11 +58,11 @@ import org.scalatest.concurrent.ScalaFutures
  * Change the host and port below in the function 'failureEndpoint' to a unresponsive host/port.
  */
 class EventStoreSpec
-    extends WordSpec
-    with ScalaFutures
-    with BeforeAndAfterEach
-    with BeforeAndAfterAll
-    with MustMatchers {
+  extends WordSpec
+  with ScalaFutures
+  with BeforeAndAfterEach
+  with BeforeAndAfterAll
+  with MustMatchers {
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
@@ -92,12 +92,9 @@ class EventStoreSpec
           StructField("someInt", IntegerType, nullable = false),
           StructField("someString", StringType, nullable = false),
           StructField("someBoolean", BooleanType, nullable = false),
-          StructField("someOtherBoolean", BooleanType, nullable = true)
-        )
-      ),
+          StructField("someOtherBoolean", BooleanType, nullable = true))),
       shardingColumns = Seq("id"),
-      pkColumns = Seq("id")
-    )
+      pkColumns = Seq("id"))
 
   implicit val defaultPatience = PatienceConfig(timeout = 3.seconds, interval = 50.millis)
 
@@ -131,8 +128,7 @@ class EventStoreSpec
       List(
         Row(1L, 1, "Hello", true, false),
         Row(2L, 2, "Hello", false, null),
-        Row(3L, 3, "Hello", true, true)
-      )
+        Row(3L, 3, "Hello", true, true))
 
     val insertionResultFuture: Future[immutable.Seq[InsertResult]] =
       Source(rows).via(EventStoreFlow(databaseName, tableName)).runWith(Sink.seq)
@@ -151,8 +147,7 @@ class EventStoreSpec
       List(
         Row(1L, 1, "Hello", true, false),
         Row(2L, 2, "Hello", false, null),
-        Row(3L, 3, "Hello", true, true)
-      )
+        Row(3L, 3, "Hello", true, true))
 
     val insertionResultFuture = Source(rows).runWith(EventStoreSink(databaseName, tableName))
     //#insert-rows
@@ -168,8 +163,7 @@ class EventStoreSpec
       List(
         Row(1L, 1, "Hello", true, false),
         Row(2L, 2, "Hello", false, null),
-        Row(3L, 3, "Hello", true, true)
-      )
+        Row(3L, 3, "Hello", true, true))
 
     assertThrows[Exception] {
       Source(rows).runWith(EventStoreSink(databaseName, tableName))
@@ -186,8 +180,7 @@ class EventStoreSpec
       List(
         Row(1L, 1, "Hello", true, false),
         Row(2L, 2, "Hello", false, null),
-        Row(3L, 3, "Hello", true, true)
-      )
+        Row(3L, 3, "Hello", true, true))
 
     assertThrows[Exception] {
       val insertionResultFuture: Future[immutable.Seq[InsertResult]] =
