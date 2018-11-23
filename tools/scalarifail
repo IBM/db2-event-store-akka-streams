@@ -1,0 +1,6 @@
+if [ $(git diff | wc -l) -ge 1 ] ; then
+  echo "!!! Code formatting changes needed:" ;
+  git --no-pager diff ;
+  echo "!!! Error: Code formatting needed!!!" ;
+  exit 1 ;
+fi
