@@ -27,8 +27,7 @@ object EventStoreSink {
    */
   def create(
     databaseName: String,
-    tableName: String
-  ): javadsl.Sink[Row, CompletionStage[Done]] =
+    tableName: String): javadsl.Sink[Row, CompletionStage[Done]] =
     ScalaEventStoreSink(databaseName, tableName, 1).mapMaterializedValue(_.toJava).asJava
 
   /**
@@ -41,8 +40,7 @@ object EventStoreSink {
   def create(
     databaseName: String,
     tableName: String,
-    parallelism: Int
-  ): javadsl.Sink[Row, CompletionStage[Done]] =
+    parallelism: Int): javadsl.Sink[Row, CompletionStage[Done]] =
     ScalaEventStoreSink(databaseName, tableName, parallelism).mapMaterializedValue(_.toJava).asJava
 }
 
@@ -57,8 +55,7 @@ object EventStoreFlow {
    */
   def create(
     databaseName: String,
-    tableName: String
-  ): javadsl.Flow[Row, InsertResult, NotUsed] =
+    tableName: String): javadsl.Flow[Row, InsertResult, NotUsed] =
     ScalaEventStoreFlow(databaseName, tableName, 1).asJava
 
   /**
@@ -72,7 +69,6 @@ object EventStoreFlow {
   def create(
     databaseName: String,
     tableName: String,
-    parallelism: Int
-  ): javadsl.Flow[Row, InsertResult, NotUsed] =
+    parallelism: Int): javadsl.Flow[Row, InsertResult, NotUsed] =
     ScalaEventStoreFlow(databaseName, tableName, parallelism).asJava
 }

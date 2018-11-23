@@ -61,16 +61,17 @@ class OnlineRetailWebServer extends HttpApp {
   /** Convert mapped order details into a Row */
   def toRow(m: Map[String, String]): Row = Row(
     System.currentTimeMillis(), invoiceToLong(m("InvoiceNo")), m("StockCode"), m("Description"), m("Quantity").toInt,
-    Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country")
-  )
+    Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country"))
 
   def websocket: Flow[Message, Message, Any] =
     Flow[Message].mapConcat {
       case textMessage: TextMessage =>
         println(ByteString(textMessage.getStrictText))
 
-        Source
-          .single(ByteString(textMessage.getStrictText))
+        textMessage.textStream
+            .map(ByteString.fromString)
+//        Source
+//          .single(ByteString(textMessage.getStrictText))
           .via(CsvParsing.lineScanner())
           .via(CsvToMap.withHeadersAsStrings(StandardCharsets.UTF_8, "InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country"))
           .map(x => toRow(x))
@@ -78,8 +79,7 @@ class OnlineRetailWebServer extends HttpApp {
           .runWith(EventStoreSink(db, tableName))
         TextMessage(
           Source
-            .single("Sent text message data to Db2 Event Store")
-        ) :: Nil
+            .single("Sent text message data to Db2 Event Store")) :: Nil
 
       case binaryMessage: BinaryMessage =>
         println("BinaryMessage received")
@@ -92,8 +92,7 @@ class OnlineRetailWebServer extends HttpApp {
           .runWith(EventStoreSink(db, tableName))
         TextMessage(
           Source
-            .single("Sent binary message data to Db2 Event Store")
-        ) :: Nil
+            .single("Sent binary message data to Db2 Event Store")) :: Nil
     }
 
   override protected def routes: Route =
@@ -102,8 +101,7 @@ class OnlineRetailWebServer extends HttpApp {
         println("GET /")
         HttpEntity(
           ContentTypes.`text/html(UTF-8)`,
-          "<html><body>OnlineRetailWebServer is running!</body></html>"
-        )
+          "<html><body>OnlineRetailWebServer is running!</body></html>")
       }
     } ~
       pathPrefix("websocket") {

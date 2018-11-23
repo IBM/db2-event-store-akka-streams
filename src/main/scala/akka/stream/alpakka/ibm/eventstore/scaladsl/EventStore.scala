@@ -26,8 +26,7 @@ object EventStoreSink {
   def apply(
     databaseName: String,
     tableName: String,
-    parallelism: Int = 1
-  ): Sink[Row, Future[Done]] =
+    parallelism: Int = 1): Sink[Row, Future[Done]] =
     EventStoreFlow(databaseName, tableName, parallelism)
       .toMat(Sink.ignore)(Keep.right)
 }
@@ -45,8 +44,7 @@ object EventStoreFlow {
   def apply(
     databaseName: String,
     tableName: String,
-    parallelism: Int = 1
-  ): Flow[Row, InsertResult, NotUsed] = {
+    parallelism: Int = 1): Flow[Row, InsertResult, NotUsed] = {
 
     val context = EventContext.getEventContext(databaseName)
     val schema = context.getTable(tableName)
