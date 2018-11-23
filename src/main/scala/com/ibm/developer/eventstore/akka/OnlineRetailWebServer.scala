@@ -29,7 +29,7 @@ import akka.http.scaladsl.settings.ServerSettings
 import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, Supervision }
 import akka.stream.alpakka.csv.scaladsl.{ CsvParsing, CsvToMap }
 import akka.stream.alpakka.ibm.eventstore.scaladsl.EventStoreSink
-import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.scaladsl.{ Flow, Keep, Source }
 import com.ibm.event.common.ConfigurationReader
 import org.apache.spark.sql.Row
 
@@ -63,37 +63,29 @@ class OnlineRetailWebServer extends HttpApp {
     System.currentTimeMillis(), invoiceToLong(m("InvoiceNo")), m("StockCode"), m("Description"), m("Quantity").toInt,
     Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country"))
 
-  def websocket: Flow[Message, Message, Any] =
-    Flow[Message].mapConcat {
-      case textMessage: TextMessage =>
-        println(ByteString(textMessage.getStrictText))
+  def websocket: Flow[Message, Message, Any] = {
+    val writerSink = Flow[Map[String, String]]
+      .map(x => toRow(x))
+      .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
+      .toMat(EventStoreSink(db, tableName))(Keep.right)
 
+    Flow[Message].mapAsync(1) {
+      case textMessage: TextMessage =>
         textMessage.textStream
-            .map(ByteString.fromString)
-//        Source
-//          .single(ByteString(textMessage.getStrictText))
+          .map(ByteString.fromString)
           .via(CsvParsing.lineScanner())
           .via(CsvToMap.withHeadersAsStrings(StandardCharsets.UTF_8, "InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country"))
-          .map(x => toRow(x))
-          .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
-          .runWith(EventStoreSink(db, tableName))
-        TextMessage(
-          Source
-            .single("Sent text message data to Db2 Event Store")) :: Nil
+          .runWith(writerSink)
+          .map(_ => TextMessage("Sent text message data to Db2 Event Store"))
 
       case binaryMessage: BinaryMessage =>
-        println("BinaryMessage received")
-
         binaryMessage.dataStream
           .via(CsvParsing.lineScanner())
           .via(CsvToMap.toMapAsStrings()) // First line is headers
-          .map(x => toRow(x))
-          .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
-          .runWith(EventStoreSink(db, tableName))
-        TextMessage(
-          Source
-            .single("Sent binary message data to Db2 Event Store")) :: Nil
+          .runWith(writerSink)
+          .map(_ => TextMessage("Sent binary message data to Db2 Event Store"))
     }
+  }
 
   override protected def routes: Route =
     pathSingleSlash {
