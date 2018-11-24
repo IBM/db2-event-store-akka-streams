@@ -23,10 +23,9 @@ When the reader has completed this Code Pattern, they will understand how to:
 3. Use Akka and Alpakka to transform the data and feed it into Event Store.
 4. Present the data with Brunel visualizations in a Jupyter notebook.
 
-<!--
 # Watch the Video
-[![](http://img.youtube.com/vi/Jxi7U7VOMYg/0.jpg)](https://www.youtube.com/watch?v=Jxi7U7VOMYg)
--->
+
+[![](http://img.youtube.com/vi/u8sMzpEcfzU/0.jpg)](https://www.youtube.com/watch?v=u8sMzpEcfzU)
 
 ## Steps
 
