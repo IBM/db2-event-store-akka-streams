@@ -4,7 +4,6 @@
 /* Original work from Lightbend has been modified, as needed, and
  * continues to be Apache v2 licensed. Modifications include:
  * - licensing/copyright for derived work modifications below
- * - only ignore the negative tests (they cause conflicts)
  * - updated endpoints
  * - fixes to allow tests to run w/ existing databases/tables
  */
@@ -57,6 +56,7 @@ import org.scalatest.concurrent.ScalaFutures
  * Change the host and port below in the function 'setEndpoint' to the EventStore
  * Change the host and port below in the function 'failureEndpoint' to a unresponsive host/port.
  */
+@Ignore
 class EventStoreSpec
   extends WordSpec
   with ScalaFutures
