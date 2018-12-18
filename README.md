@@ -7,7 +7,7 @@ implement a WebSockets endpoint which streams data to a Db2 Event Store
 database. For our data, we'll use online retail order details in CSV format.
 We'll use Jupyter notebooks with Scala and Brunel to visualize the Event Store data.
 
-When the reader has completed this Code Pattern, they will understand how to:
+When the reader has completed this code pattern, they will understand how to:
 
 * Implement WebSockets with Scala and Akka
 * Use Alpakka Flows for CSV parsing and inserts into Event Store
@@ -46,7 +46,7 @@ git clone https://github.com/IBM/db2-event-store-akka-streams
 
 ### 2. Install IBM Db2 Event Store Developer Edition
 
-Install IBM® Db2® Event Store Developer Edition on Mac, Linux, or Windows by following the instructions [here.](https://www.ibm.com/support/knowledgecenter/en/SSGNPV/eventstore/desktop/install.html)
+Install IBM® Db2® Event Store Developer Edition on Mac, Linux, or Windows by following the instructions [here.](https://www.ibm.com/support/knowledgecenter/en/SSGNPV_1.1.3/desktop/install.html)
 
 > Note: This code pattern was developed with EventStore-DeveloperEdition 1.1.4
 
@@ -64,11 +64,11 @@ Scala with Event Store, such as:
 
 Use the Db2 Event Store UI to create and run the notebook.
 
-1. From the  upper-left corner `☰` drop down menu, select `My Notebooks`.
+1. From the upper-left corner `☰` drop down menu, select `My Notebooks`.
 1. Click on `add notebooks`.
 1. Select the `From File` tab.
 1. Provide a name.
-1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Select the file `online_retail_database_setup.ipynb`.
+1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Open the file `online_retail_database_setup.ipynb`.
 1. Scroll down and click on `Create Notebook`.
 
 The new notebook is now open and ready for execution.
@@ -156,11 +156,11 @@ Brunel visualizations to manipulate and present the data.
 
 Use the Db2 Event Store UI to create and run the notebook.
 
-1. From the  upper-left corner `☰` drop down menu, select `My Notebooks`.
+1. From the upper-left corner `☰` drop down menu, select `My Notebooks`.
 1. Click on `add notebooks`.
 1. Select the `From File` tab.
 1. Provide a name.
-1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Select the file `online_retail_orders.ipynb`.
+1. Click `Choose File` and navigate to the `notebooks` directory in your cloned repo. Open the file `online_retail_orders.ipynb`.
 1. Scroll down and click on `Create Notebook`. The new notebook is now open and ready for execution.
 
 #### Run the orders notebook
@@ -202,11 +202,12 @@ Spark SQL and %%dataframe cell magic makes it easy to show a nice table for Top-
 Run the code pattern (or cheat and look at the sample output notebook)
 to see these examples live -- and more.
 
-
 ## Sample output
 
 See the notebook with example output and **interactive charts** [here](http://nbviewer.jupyter.org/github/IBM/db2-event-store-akka-streams/blob/master/data/examples/online_retail_orders.ipynb).
 
 ## License
 
-[Apache 2.0](LICENSE)
+This code pattern is licensed under the Apache License, Version 2. Separate third-party code objects invoked within this code pattern are licensed by their respective providers pursuant to their own separate licenses. Contributions are subject to the [Developer Certificate of Origin, Version 1.1](https://developercertificate.org/) and the [Apache License, Version 2](https://www.apache.org/licenses/LICENSE-2.0.txt).
+
+[Apache License FAQ](https://www.apache.org/foundation/license-faq.html#WhatDoesItMEAN)
