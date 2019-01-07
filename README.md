@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/IBM/db2-event-store-akka-streams.svg?branch=master)](https://travis-ci.org/IBM/db2-event-store-akka-streams)
+[![Build Status](https://api.travis-ci.org/IBM/db2-event-store-akka-streams.svg?branch=master)](https://travis-ci.org/IBM/db2-event-store-akka-streams)
 
 # Online retail data streaming with Akka and Db2 Event Store
 
@@ -25,7 +25,7 @@ When the reader has completed this code pattern, they will understand how to:
 
 # Watch the Video
 
-[![](http://img.youtube.com/vi/u8sMzpEcfzU/0.jpg)](https://www.youtube.com/watch?v=u8sMzpEcfzU)
+[![](https://img.youtube.com/vi/u8sMzpEcfzU/0.jpg)](https://www.youtube.com/watch?v=u8sMzpEcfzU)
 
 ## Steps
 
@@ -204,7 +204,7 @@ to see these examples live -- and more.
 
 ## Sample output
 
-See the notebook with example output and **interactive charts** [here](http://nbviewer.jupyter.org/github/IBM/db2-event-store-akka-streams/blob/master/data/examples/online_retail_orders.ipynb).
+See the notebook with example output and **interactive charts** [here](https://nbviewer.jupyter.org/github/IBM/db2-event-store-akka-streams/blob/master/data/examples/online_retail_orders.ipynb).
 
 ## License
 
