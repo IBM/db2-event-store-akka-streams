@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/IBM/db2-event-store-akka-streams.svg?branch=master)](https://travis-ci.org/IBM/db2-event-store-akka-streams)
+[![Build Status](https://travis-ci.org/IBM/db2-event-store-akka-streams.svg?branch=master)](https://travis-ci.org/IBM/db2-event-store-akka-streams)
 
 # Online retail data streaming with Akka and Db2 Event Store
 
