@@ -19,62 +19,73 @@ import java.nio.charset.StandardCharsets
 import java.sql.Timestamp
 
 import akka.Done
-import akka.actor.{ ActorSystem, Terminated }
-import akka.event.Logging
-import akka.util.ByteString
-import akka.http.scaladsl.model.ws.{ BinaryMessage, Message, TextMessage }
-import akka.http.scaladsl.model.{ ContentTypes, HttpEntity }
-import akka.http.scaladsl.server.{ HttpApp, Route }
-import akka.http.scaladsl.settings.ServerSettings
-import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, Supervision }
-import akka.stream.alpakka.csv.scaladsl.{ CsvParsing, CsvToMap }
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.HttpEntity
+import akka.http.scaladsl.model.ws.BinaryMessage
+import akka.http.scaladsl.model.ws.Message
+import akka.http.scaladsl.model.ws.TextMessage
+import akka.http.scaladsl.server.HttpApp
+import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
+import akka.stream.alpakka.csv.scaladsl.CsvParsing
+import akka.stream.alpakka.csv.scaladsl.CsvToMap
 import akka.stream.alpakka.ibm.eventstore.scaladsl.EventStoreSink
-import akka.stream.scaladsl.{ Flow, Keep, Source }
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Sink
+import akka.util.ByteString
 import com.ibm.event.common.ConfigurationReader
 import org.apache.spark.sql.Row
 
-import scala.concurrent._
-import scala.util.Success
+import scala.concurrent.Future
 
-class OnlineRetailWebServer extends HttpApp {
+object OnlineRetailWebServer extends HttpApp {
 
-  val decider: Supervision.Decider = { e =>
-    println("Unhandled exception in stream", e)
-    Supervision.Resume
-  }
-
-  implicit val system: ActorSystem = ActorSystem(Logging.simpleName(this).replaceAll("\\$", ""))
-  val materializerSettings: ActorMaterializerSettings = ActorMaterializerSettings(system).withSupervisionStrategy(decider)
-  implicit val materializer: ActorMaterializer = ActorMaterializer(materializerSettings)
-  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-
-  ConfigurationReader.setConnectionEndpoints("0.0.0.0:1100")
-
-  private val shutdownPromise = Promise[Done]
-  private val db = "TESTDB"
-  private val tableName = "OnlineRetailOrderDetail"
-  private val cancelTableName = "OnlineRetailCancelDetail"
+  private val DB = "TESTDB"
+  private val TableName = "OnlineRetailOrderDetail"
+  private val CancelTableName = "OnlineRetailCancelDetail"
 
   /** Remove non-numerics from invoice numbers (C prefix used in cancellations) */
-  def invoiceToLong(invoice: String): Long = invoice.replaceAll("[^\\d.]", "").toLong
+  private def invoiceToLong(invoice: String): Long =
+    invoice.replaceAll("[^\\d.]", "").toLong
 
   /** Convert mapped order details into a Row */
-  def toRow(m: Map[String, String]): Row = Row(
-    System.currentTimeMillis(), invoiceToLong(m("InvoiceNo")), m("StockCode"), m("Description"), m("Quantity").toInt,
-    Timestamp.valueOf(m("InvoiceDate")), java.lang.Double.valueOf(m("UnitPrice")), m("CustomerID"), m("Country"))
+  private def toRow(m: Map[String, String]): Row =
+    Row(
+      System.currentTimeMillis(),
+      invoiceToLong(m("InvoiceNo")),
+      m("StockCode"),
+      m("Description"),
+      m("Quantity").toInt,
+      Timestamp.valueOf(m("InvoiceDate")),
+      java.lang.Double.valueOf(m("UnitPrice")),
+      m("CustomerID"),
+      m("Country"))
 
-  def websocket: Flow[Message, Message, Any] = {
-    val writerSink = Flow[Map[String, String]]
-      .map(x => toRow(x))
-      .divertTo(EventStoreSink(db, cancelTableName), r => r.getInt(4) < 0)
-      .toMat(EventStoreSink(db, tableName))(Keep.right)
+  def websocket(implicit materializer: Materializer): Flow[Message, Message, Any] = {
+    implicit val executionContext = materializer.executionContext
+    val writerSink: Sink[Map[String, String], Future[Done]] =
+      Flow[Map[String, String]]
+        .map(x => toRow(x))
+        .divertTo(EventStoreSink(DB, CancelTableName), r => r.getInt(4) < 0)
+        .toMat(EventStoreSink(DB, TableName))(Keep.right)
 
     Flow[Message].mapAsync(1) {
       case textMessage: TextMessage =>
         textMessage.textStream
           .map(ByteString.fromString)
           .via(CsvParsing.lineScanner())
-          .via(CsvToMap.withHeadersAsStrings(StandardCharsets.UTF_8, "InvoiceNo", "StockCode", "Description", "Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country"))
+          .via(
+            CsvToMap.withHeadersAsStrings(
+              StandardCharsets.UTF_8,
+              "InvoiceNo",
+              "StockCode",
+              "Description",
+              "Quantity",
+              "InvoiceDate",
+              "UnitPrice",
+              "CustomerID",
+              "Country"))
           .runWith(writerSink)
           .map(_ => TextMessage("Sent text message data to Db2 Event Store"))
 
@@ -87,45 +98,26 @@ class OnlineRetailWebServer extends HttpApp {
     }
   }
 
-  override protected def routes: Route =
-    pathSingleSlash {
-      complete {
-        println("GET /")
-        HttpEntity(
-          ContentTypes.`text/html(UTF-8)`,
-          "<html><body>OnlineRetailWebServer is running!</body></html>")
-      }
-    } ~
-      pathPrefix("websocket") {
-        path("orderitem") {
-          println("Incoming ws: websocket/orderitem")
-          handleWebSocketMessages(websocket)
-        }
-      }
-
-  override protected def postHttpBindingFailure(cause: Throwable): Unit =
-    println(s"postHttpBindingFailure: $cause")
-
-  def start(host: String = "localhost", port: Int = 8080): Future[Done] = {
-    val settings = ServerSettings(system.settings.config)
-    Future {
-      startServer(host, port, settings, system)
-    }.map(_ => Done)
-  }
-
-  override protected def waitForShutdownSignal(system: ActorSystem)(implicit ec: ExecutionContext): Future[Done] =
-    shutdownPromise.future
-
-  def stop(): Future[Terminated] = {
-    shutdownPromise.tryComplete(Success(Done))
-    system.terminate()
-  }
+  def routes: Route =
+    extractLog { logger =>
+      concat(
+        pathSingleSlash {
+          logger.info("GET /")
+          complete(HttpEntity(
+            ContentTypes.`text/html(UTF-8)`,
+            "<html><body>OnlineRetailWebServer is running!</body></html>"))
+        },
+        path("websocket" / "orderitem") {
+          logger.info("Incoming ws: websocket/orderitem")
+          extractMaterializer { materializer =>
+            handleWebSocketMessages(websocket(materializer))
+          }
+        })
+    }
 
   def main(args: Array[String]): Unit = {
+    ConfigurationReader.setConnectionEndpoints("0.0.0.0:1100")
     println("Starting OnlineRetailWebServer...")
-    start("localhost", 8080)
+    startServer("localhost", 8080)
   }
 }
-
-object WebServer extends OnlineRetailWebServer
-
