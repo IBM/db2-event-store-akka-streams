@@ -46,7 +46,7 @@ git clone https://github.com/IBM/db2-event-store-akka-streams
 
 ### 2. Install IBM Db2 Event Store Developer Edition
 
-Install IBM® Db2® Event Store Developer Edition on Mac, Linux, or Windows by following the instructions [here.](https://www.ibm.com/support/knowledgecenter/en/SSGNPV_1.1.3/desktop/install.html)
+Install IBM® Db2® Event Store Developer Edition on Mac, Linux, or Windows by following the instructions [here.](https://www.ibm.com/products/db2-event-store)
 
 > Note: This code pattern was developed with EventStore-DeveloperEdition 1.1.4
 
@@ -139,7 +139,7 @@ text or file input.
 * Enter `ws://localhost:8080/websocket/orderitem` as the `Socket URL` and hit `CONNECT`.
 * To send text:
   * Click on the `Text` tab.
-  * Paste one more lines of text from the example CSV file into `Message to send`.
+  * Paste one or more lines of text from the example CSV file into `Message to send`.
   * Press `SEND`.
 * To send a file:
   * Click on the `File` tab.
